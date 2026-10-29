@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0d1117">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Musicothèque</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<!-- Appairage -->
+<section id="pair" class="screen hidden">
+  <div class="pair-box">
+    <img src="icon-192.png" alt="" class="logo">
+    <h1>Musicothèque</h1>
+    <p>Saisissez le code affiché sur l'écran du Raspberry Pi<br><small>(Outils ▸ Télécommande)</small></p>
+    <input id="pin" inputmode="numeric" maxlength="4" pattern="[0-9]*" autocomplete="one-time-code" placeholder="••••">
+    <button id="pairBtn" class="primary">Connecter</button>
+    <p id="pairErr" class="err"></p>
+  </div>
+</section>
+
+<!-- Application -->
+<section id="main" class="hidden">
+  <header>
+    <span class="brand">♪ Musicothèque</span>
+    <span id="conn" class="dot" title="connexion"></span>
+  </header>
+  <nav id="players" class="chips hidden"></nav>
+
+  <!-- Lecture -->
+  <div id="v-play" class="view">
+    <div class="cover-wrap"><img id="cover" alt=""><div id="coverPh">♪</div></div>
+    <h2 id="title">Aucun titre</h2>
+    <p id="artist" class="sub"></p>
+    <p id="album" class="dim"></p>
+    <input id="seek" type="range" min="0" max="1000" value="0">
+    <div class="times"><span id="tpos">0:00</span><span id="tdur">0:00</span></div>
+    <div class="controls">
+      <button id="bShuffle" class="ic">🔀</button>
+      <button id="bPrev" class="ic">⏮</button>
+      <button id="bPlay" class="play">▶</button>
+      <button id="bNext" class="ic">⏭</button>
+      <button id="bRepeat" class="ic">🔁</button>
+    </div>
+    <div class="vol"><button id="bMute" class="ic small">🔊</button><input id="vol" type="range" min="0" max="100"><span id="volLbl">80 %</span></div>
+  </div>
+
+  <!-- Musique -->
+  <div id="v-lib" class="view hidden">
+    <div class="seg" id="libSeg">
+      <button data-k="artists" class="on">Artistes</button><button data-k="albums">Albums</button>
+      <button data-k="tracks">Titres</button><button data-k="playlists">Playlists</button>
+    </div>
+    <div class="search"><input id="q" type="search" placeholder="🔍 Rechercher un titre, un artiste…"></div>
+    <div class="crumb"><button id="back" class="ic small hidden">←</button><span id="crumb"></span>
+      <button id="playAll" class="small hidden">▶ Tout</button><button id="shufAll" class="small hidden">🔀</button></div>
+    <ul id="list" class="list"></ul>
+  </div>
+
+  <!-- File -->
+  <div id="v-queue" class="view hidden">
+    <div class="crumb"><span id="qTitle">File de lecture</span><button id="qClear" class="small">Vider</button></div>
+    <ul id="qlist" class="list"></ul>
+  </div>
+
+  <!-- Son -->
+  <div id="v-sound" class="view hidden">
+    <h3>Sorties audio</h3>
+    <div id="outs"></div>
+  </div>
+
+  <footer>
+    <button data-v="play" class="on">▶<br>Lecture</button>
+    <button data-v="lib">🎵<br>Musique</button>
+    <button data-v="queue">☰<br>File</button>
+    <button data-v="sound">🎚<br>Son</button>
+  </footer>
+</section>
+
+<div id="sheet" class="sheet hidden"><div class="sheet-box"><h4 id="sheetTitle"></h4><div id="sheetBtns"></div>
+  <button class="cancel" id="sheetCancel">Annuler</button></div></div>
+<div id="toast" class="toast hidden"></div>
+<script src="app.js"></script>
+</body>
+</html>
