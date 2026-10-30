@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><title>11. Télécommande Android</title><link rel="stylesheet" href="aide.css"></head><body><h1>11. Télécommande Android</h1><p>La version Raspberry Pi se pilote depuis un téléphone ou une tablette <strong>connecté au même Wi-Fi</strong>.</p>
+<h3>Ce qu'on peut faire</h3>
+<ul>
+<li>lecture, pause, titre précédent et suivant, avancer dans le morceau, volume, aléatoire, répétition ;</li>
+<li>choisir de la musique : artistes, albums, titres, playlists, recherche ;</li>
+<li>gérer la file de lecture ;</li>
+<li>régler chaque sortie : volume, lecteur diffusé, profil audio, activation ;</li>
+<li>tout cela pour chacun des 3 lecteurs.</li>
+</ul>
+<h3>Installer l'application</h3>
+<ol>
+<li>Sur le téléphone, ouvrez la page <strong>Releases</strong> du dépôt GitHub <code>decmike91/musicoteque</code> et téléchargez <strong>Musicotheque-Telecommande.apk</strong>.</li>
+<li>Ouvrez le fichier et autorisez l'installation depuis cette source quand Android le demande.</li>
+<li>Lancez <strong>Musicothèque</strong>. L'application trouve toute seule le Raspberry Pi sur le Wi-Fi : touchez-le.</li>
+<li>Saisissez le <strong>code à 4 chiffres</strong> affiché sur le Pi dans <strong>Outils ▸ 📱 Télécommande</strong>.</li>
+</ol>
+<div class="fig screen"><img src="images/telecommande_android.png" alt="La télécommande sur un téléphone Android."><div class="cap">La télécommande sur un téléphone Android.</div></div>
+
+<p>Si le Pi n'est pas trouvé, saisissez l'adresse affichée dans la même fenêtre, par exemple <code>192.168.1.20:8080</code>, puis <strong>Se connecter</strong>.</p>
+<h3>Sans application</h3>
+<p>Sur le Pi, ouvrez <strong>Outils ▸ 📱 Télécommande</strong> et scannez le <strong>QR code</strong> avec l'appareil photo du téléphone : la télécommande s'ouvre dans le navigateur, déjà appairée. Cela fonctionne aussi sur iPhone et sur un ordinateur.</p>
+<div class="fig screen"><img src="images/tactile_telecommande.png" alt="Outils ▸ Télécommande : QR code et code d&#x27;appairage."><div class="cap">Outils ▸ Télécommande : QR code et code d&#x27;appairage.</div></div>
+
+<h3>Code d'appairage et sécurité</h3>
+<ul>
+<li>Le code est demandé <strong>une seule fois</strong> par téléphone.</li>
+<li><strong>Nouveau code</strong> déconnecte tous les téléphones déjà appairés.</li>
+<li>Le bouton <strong>Activée</strong> coupe ou réactive la télécommande.</li>
+<li>Dans l'application, la touche Retour propose <strong>Changer de Musicothèque</strong> ou <strong>Quitter</strong>.</li>
+</ul><p class="nav"><a href="10-tactile.html">◀ 10. Version tactile (Raspberry Pi et autres cartes)</a> &nbsp;·&nbsp; <a href="index.html">Sommaire</a> &nbsp;·&nbsp; <a href="12-depannage.html">12. Dépannage, raccourcis et fichiers ▶</a></p></body></html>

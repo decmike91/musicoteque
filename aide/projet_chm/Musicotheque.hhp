@@ -1,0 +1,46 @@
+[OPTIONS]
+Compatibility=1.1 or later
+Compiled file=Musicotheque.chm
+Contents file=Musicotheque.hhc
+Default Window=main
+Default topic=index.html
+Display compile progress=No
+Full-text search=Yes
+Index file=Musicotheque.hhk
+Language=0x40c French (France)
+Title=Musicothèque — Aide
+
+[WINDOWS]
+main="Musicothèque — Aide","Musicotheque.hhc","Musicotheque.hhk","index.html","index.html",,,,,0x63520,240,0x10184e,[60,40,1060,760],,,,,,,0
+
+[FILES]
+index.html
+02-installation.html
+03-premiers-pas.html
+04-bibliotheque.html
+05-ranger.html
+06-identifier.html
+07-son.html
+08-audiogramme.html
+09-sorties.html
+10-tactile.html
+11-telecommande.html
+12-depannage.html
+aide.css
+images/audiogramme.png
+images/autres_lecteurs.png
+images/cd_mp3.png
+images/fenetre_principale.png
+images/identifier.png
+images/modifier_infos.png
+images/panneau_son.png
+images/rangement.png
+images/tactile_2_lecteurs.png
+images/tactile_lecture.png
+images/tactile_musique.png
+images/tactile_outils.png
+images/tactile_son.png
+images/tactile_telecommande.png
+images/telecommande_android.png
+images/test_auditif.png
+images/youtube_mp3.png

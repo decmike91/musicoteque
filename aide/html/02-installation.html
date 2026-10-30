@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><title>2. Installation</title><link rel="stylesheet" href="aide.css"></head><body><h1>2. Installation</h1><p>Une seule installation suffit par appareil. Ensuite, les mises à jour remplacent les fichiers sans toucher à vos réglages ni à votre bibliothèque.</p>
+<h3>Windows 10 et 11</h3>
+<ol>
+<li>Décompressez <strong>Musicotheque.zip</strong> dans un dossier, par exemple <code>Documents\Musicotheque</code>.</li>
+<li>Double-cliquez sur <strong>installer.bat</strong>. L'installateur met en place Python, les bibliothèques et trois outils : ffmpeg (lecture et conversion), fpcalc (empreinte sonore) et cyanrip (extraction de CD).</li>
+<li>Lancez <strong>Musicothèque</strong> depuis le raccourci du Bureau.</li>
+</ol>
+<p>ffmpeg pèse environ 100 Mo : une barre de progression s'affiche pendant le téléchargement. S'il échoue, voir la section Dépannage.</p>
+<h3>Raspberry Pi, Banana Pi et autres cartes Linux</h3>
+<ol>
+<li>Installez <strong>Raspberry Pi OS 64 bits</strong> (version Lite conseillée pour une borne), ou <strong>Armbian</strong> (Debian 12) pour une Banana Pi M5.</li>
+<li>Copiez le dossier <code>musicotheque</code> sur la carte, puis dans un terminal : <code>./install_rpi.sh</code>.</li>
+<li>Répondez aux questions : Bluetooth (o/N), démarrage (1 = borne plein écran), rotation de l'écran (90 pour le Touch Display 2 à l'horizontale).</li>
+<li>Redémarrez : Musicothèque s'ouvre en plein écran.</li>
+</ol>
+<p>Matériel conseillé : Raspberry Pi 4 ou 5 (ou Banana Pi M5), écran tactile de 7 à 10" (800×480 minimum), carte son DAC ou DAC USB pour un bon son.</p>
+<h3>Télécommande Android</h3>
+<ol>
+<li>Sur le téléphone, ouvrez l'onglet <strong>Releases</strong> du dépôt GitHub et téléchargez <strong>Musicotheque-Telecommande.apk</strong>.</li>
+<li>Ouvrez le fichier et autorisez l'installation depuis cette source.</li>
+<li>Android 7 ou plus récent est nécessaire.</li>
+</ol><p class="nav"><a href="index.html">◀ 1. Présentation</a> &nbsp;·&nbsp; <a href="index.html">Sommaire</a> &nbsp;·&nbsp; <a href="03-premiers-pas.html">3. Premiers pas ▶</a></p></body></html>

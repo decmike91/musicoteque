@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><title>5. Ranger et classer un emplacement</title><link rel="stylesheet" href="aide.css"></head><body><h1>5. Ranger et classer un emplacement</h1><p>Menu <strong>Ranger ▸ Ranger / classer un emplacement</strong> (Ctrl+R). Le rangement fonctionne sur un disque dur, une clé USB ou un simple dossier.</p>
+<h3>Étape par étape</h3>
+<ol>
+<li><strong>Emplacement à ranger</strong> : par exemple <code>E:\</code> pour une clé USB.</li>
+<li><strong>Destination</strong> : par défaut <code>E:\Musique classée</code>, ou « Ma bibliothèque ».</li>
+<li><strong>Mode</strong> : <em>Déplacer</em> (les fichiers quittent leur place d'origine) ou <em>Copier</em> (l'original reste intact).</li>
+<li><strong>Options</strong> :<ul>
+<li><em>Identifier en ligne les titres incomplets</em> : retrouve d'abord les informations manquantes ;</li>
+<li><em>Supprimer automatiquement les doublons</em> (cochée par défaut) ;</li>
+<li><em>Transformer les WAV, OGG et WMA en MP3</em> (cochée par défaut).</li>
+</ul>
+</li>
+<li><strong>Analyser</strong> : un aperçu montre chaque fichier, sa future place et une remarque (doublon, conversion, remplacement). <strong>Rien n'est encore modifié.</strong></li>
+<li><strong>Ranger</strong> : les fichiers sont renommés et classés en <code>Artiste\Album (Année)\01 - Titre.mp3</code>. Les dossiers vides sont supprimés.</li>
+</ol>
+<div class="fig screen"><img src="images/rangement.png" alt="L&#x27;aperçu du rangement : rien n&#x27;est modifié avant « 2. Ranger »."><div class="cap">L&#x27;aperçu du rangement : rien n&#x27;est modifié avant « 2. Ranger ».</div></div>
+
+<h3>Doublons</h3>
+<ul>
+<li>Sont des doublons : les copies identiques, et le même morceau en plusieurs fichiers (même artiste, même titre, durée proche à 3 secondes près).</li>
+<li><strong>Le meilleur exemplaire est gardé</strong> : sans perte (WAV, FLAC) d'abord, puis le meilleur débit, puis celui qui a une pochette et des informations complètes.</li>
+<li>Les autres vont à la <strong>Corbeille</strong>. Sur une clé USB, Windows n'a pas de corbeille : ils y sont supprimés définitivement.</li>
+<li>Un morceau déjà présent dans la bibliothèque n'est pas recopié. S'il arrive en meilleure qualité, il remplace l'ancien.</li>
+<li>Ne sont <strong>pas</strong> des doublons : les versions « Live » ou de durée différente, et le même titre sur deux albums différents (album et best-of). Chaque album reste complet.</li>
+<li>En mode <em>Copier</em>, rien n'est supprimé sur le support d'origine : les doublons ne sont simplement pas copiés.</li>
+</ul>
+<h3>Conversion WAV, OGG et WMA en MP3</h3>
+<ul>
+<li>Les informations et la pochette sont conservées.</li>
+<li>Les <strong>WAV</strong> (et AIFF) sont convertis à la qualité choisie dans les Paramètres (320 kbit/s par défaut).</li>
+<li>Les <strong>OGG</strong> et <strong>WMA</strong>, déjà compressés, sont convertis un peu au-dessus de leur qualité d'origine (192 kbit/s au minimum), sans gonfler les fichiers inutilement.</li>
+<li>En mode <em>Déplacer</em>, l'original va à la Corbeille une fois la conversion réussie.</li>
+<li>Un WMA protégé contre la copie (DRM) ne peut pas être converti : il est laissé tel quel, avec un message.</li>
+</ul>
+<p>Pour nettoyer une bibliothèque déjà rangée : <strong>Ranger ▸ Supprimer les doublons et transformer les WAV / OGG / WMA en MP3</strong>.</p>
+<h3>Fichiers protégés (« accès refusé »)</h3>
+<p>Un fichier impossible à lire, déplacer ou modifier <strong>n'arrête pas le rangement</strong> : il est signalé, laissé à sa place, et le rangement passe au suivant.</p>
+<ul>
+<li>La lecture seule (fréquente sur les fichiers copiés d'un CD) est retirée automatiquement quand c'est possible.</li>
+<li>Un fichier copié mais impossible à retirer de la clé est ajouté à la bibliothèque, et l'original reste sur la clé.</li>
+<li>En fin de rangement, la liste <strong>« Fichiers non traités »</strong> indique chaque fichier ignoré et pourquoi. Fermez le programme qui l'utilise, puis relancez le rangement.</li>
+</ul>
+<h3>Annuler</h3>
+<p><strong>Ranger ▸ Annuler le dernier rangement</strong> remet en place les fichiers déplacés. Les fichiers supprimés se récupèrent dans la Corbeille.</p>
+<h3>Référencer sans ranger</h3>
+<p><strong>Fichier ▸ Ajouter un dossier</strong> (Ctrl+O) ajoute un dossier à la bibliothèque sans déplacer ni renommer ses fichiers. <strong>F5</strong> actualise la bibliothèque.</p><p class="nav"><a href="04-bibliotheque.html">◀ 4. Bibliothèque et lecteur</a> &nbsp;·&nbsp; <a href="index.html">Sommaire</a> &nbsp;·&nbsp; <a href="06-identifier.html">6. Identifier, modifier les infos, CD et YouTube ▶</a></p></body></html>

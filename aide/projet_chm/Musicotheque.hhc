@@ -1,0 +1,76 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+<HTML><HEAD><meta name="GENERATOR" content="build_aide.py"></HEAD><BODY>
+<OBJECT type="text/site properties"><param name="ImageType" value="Folder"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="1. Présentation"><param name="Local" value="index.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="2. Installation"><param name="Local" value="02-installation.html"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Windows 10 et 11"><param name="Local" value="02-installation.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Raspberry Pi, Banana Pi et autres cartes Linux"><param name="Local" value="02-installation.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Télécommande Android"><param name="Local" value="02-installation.html"></OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="3. Premiers pas"><param name="Local" value="03-premiers-pas.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="4. Bibliothèque et lecteur"><param name="Local" value="04-bibliotheque.html"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Trouver un morceau"><param name="Local" value="04-bibliotheque.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Lire"><param name="Local" value="04-bibliotheque.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Playlists"><param name="Local" value="04-bibliotheque.html"></OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="5. Ranger et classer un emplacement"><param name="Local" value="05-ranger.html"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Étape par étape"><param name="Local" value="05-ranger.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Doublons"><param name="Local" value="05-ranger.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Conversion WAV, OGG et WMA en MP3"><param name="Local" value="05-ranger.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Fichiers protégés (« accès refusé »)"><param name="Local" value="05-ranger.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Annuler"><param name="Local" value="05-ranger.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Référencer sans ranger"><param name="Local" value="05-ranger.html"></OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="6. Identifier, modifier les infos, CD et YouTube"><param name="Local" value="06-identifier.html"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Identifier un titre « façon Shazam »"><param name="Local" value="06-identifier.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Modifier les informations à la main"><param name="Local" value="06-identifier.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="CD audio vers MP3"><param name="Local" value="06-identifier.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Lien YouTube vers MP3"><param name="Local" value="06-identifier.html"></OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="7. Réglages du son et profils audio"><param name="Local" value="07-son.html"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Égaliseur"><param name="Local" value="07-son.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Ambiances et effets"><param name="Local" value="07-son.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Profils audio"><param name="Local" value="07-son.html"></OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="8. Audiogramme et test auditif"><param name="Local" value="08-audiogramme.html"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Saisir un audiogramme"><param name="Local" value="08-audiogramme.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Activer la correction"><param name="Local" value="08-audiogramme.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Faire un test auditif"><param name="Local" value="08-audiogramme.html"></OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="9. Plusieurs sorties et plusieurs lecteurs"><param name="Local" value="09-sorties.html"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Le son sur 2 ou 3 périphériques en même temps"><param name="Local" value="09-sorties.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Une autre musique sur une autre sortie"><param name="Local" value="09-sorties.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Enceintes et casques Bluetooth"><param name="Local" value="09-sorties.html"></OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="10. Version tactile (Raspberry Pi et autres cartes)"><param name="Local" value="10-tactile.html"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Les cinq pages"><param name="Local" value="10-tactile.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Gestes"><param name="Local" value="10-tactile.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Les tuiles de la page Outils"><param name="Local" value="10-tactile.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Clé USB"><param name="Local" value="10-tactile.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Une autre musique sur une autre sortie"><param name="Local" value="10-tactile.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Taille d&#x27;écran"><param name="Local" value="10-tactile.html"></OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="11. Télécommande Android"><param name="Local" value="11-telecommande.html"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Ce qu&#x27;on peut faire"><param name="Local" value="11-telecommande.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Installer l&#x27;application"><param name="Local" value="11-telecommande.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Sans application"><param name="Local" value="11-telecommande.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Code d&#x27;appairage et sécurité"><param name="Local" value="11-telecommande.html"></OBJECT>
+</UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="12. Dépannage, raccourcis et fichiers"><param name="Local" value="12-depannage.html"></OBJECT>
+<UL>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Dépannage"><param name="Local" value="12-depannage.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Raccourcis clavier (Windows)"><param name="Local" value="12-depannage.html"></OBJECT>
+<LI><OBJECT type="text/sitemap"><param name="Name" value="Où sont mes fichiers ?"><param name="Local" value="12-depannage.html"></OBJECT>
+</UL>
+</UL>
+</BODY></HTML>

@@ -12,6 +12,8 @@ if not exist ".venv\Scripts\python.exe" (
   --add-data "bin;bin" main.py
 rem Les outils doivent être à côté de l'exe
 xcopy /E /I /Y bin "dist\Musicotheque\bin" >nul
+rem Aide (F1) et manuel PDF
+xcopy /E /I /Y aide "dist\Musicotheque\aide" >nul
 echo.
 echo Programme cree : dist\Musicotheque\Musicotheque.exe
 pause

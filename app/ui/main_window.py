@@ -7,6 +7,7 @@ from pathlib import Path
 
 from PySide6.QtCore import Qt, QTimer, QSize
 from PySide6.QtGui import QAction, QPixmap, QKeySequence, QShortcut
+from ..help import open_help, pdf_path
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QSplitter, QTreeWidget, QTreeWidgetItem,
     QTableView, QLineEdit, QComboBox, QLabel, QPushButton, QSlider, QToolButton, QMenu,
@@ -172,6 +173,31 @@ class MainWindow(QMainWindow):
                   lambda: (self.others_dock.show(), self.others.refresh()))
         self._act(m, "Audiogramme de la sortie affichée", lambda: self._sound_tab(1))
         self._act(m, "Test auditif…", lambda: (self._sound_tab(1), self.sound.tabs.currentWidget().hearing_test()))
+        m = mb.addMenu("&Aide")
+        self._act(m, "Manuel d'utilisation", lambda: open_help(self), "F1")
+        self._act(m, "Ranger et classer : mode d'emploi", lambda: open_help(self, "ranger"))
+        self._act(m, "Réglages du son et profils", lambda: open_help(self, "son"))
+        self._act(m, "Audiogramme et test auditif", lambda: open_help(self, "audiogramme"))
+        self._act(m, "Plusieurs sorties et lecteurs", lambda: open_help(self, "sorties"))
+        self._act(m, "Dépannage et raccourcis clavier", lambda: open_help(self, "depannage"))
+        m.addSeparator()
+        self._act(m, "Manuel à imprimer (PDF)", self.open_pdf_manual)
+        self._act(m, "À propos de Musicothèque", self.about)
+
+    def open_pdf_manual(self):
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+        p = pdf_path()
+        if p.exists():
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(p)))
+        else:
+            QMessageBox.information(self, "Manuel", "Le manuel PDF n'est pas installé.")
+
+    def about(self):
+        QMessageBox.about(self, "À propos de Musicothèque",
+                          "<b>Musicothèque</b><br>Bibliothèque, rangement, identification, conversion "
+                          "et lecture de musique.<br><br>Aide : touche F1.<br>"
+                          "<a href='https://github.com/decmike91/musicoteque'>github.com/decmike91/musicoteque</a>")
 
     def _act(self, menu, text, fn, sc=None):
         a = QAction(text, self); a.triggered.connect(fn)

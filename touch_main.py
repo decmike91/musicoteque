@@ -23,6 +23,8 @@ def main():
     from app.touch import common
     app = QApplication([sys.argv[0]] + qt_args)
     app.setApplicationName(APP_NAME)
+    from app.help import install_french
+    install_french(app)
     app.setAttribute(Qt.AA_SynthesizeMouseForUnhandledTouchEvents, True)
     common.init_scale(app)
     if args.fenetre:

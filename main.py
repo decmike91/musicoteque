@@ -18,6 +18,8 @@ def main():
     QGuiApplication.setHighDpiScaleFactorRoundingPolicy(Qt.HighDpiScaleFactorRoundingPolicy.PassThrough)
     app = QApplication(sys.argv)
     app.setApplicationName(APP_NAME)
+    from app.help import install_french
+    install_french(app)
     w = MainWindow()
     w.show_adapted()
     sys.exit(app.exec())

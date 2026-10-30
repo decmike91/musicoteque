@@ -76,6 +76,7 @@ Barre du bas : **Lecture · Musique · File · Son · Outils**.
   - Compléter les infos manquantes,
   - CD → MP3, YouTube → MP3,
   - Actualiser la bibliothèque, Éjecter un support,
+  - **❓ Aide** : le manuel d'utilisation à l'écran, avec captures et liens entre chapitres,
   - Paramètres (clé AcoustID, dossier de la bibliothèque, qualité MP3, luminosité),
   - Éteindre ou redémarrer.
 

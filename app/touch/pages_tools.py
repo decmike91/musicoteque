@@ -33,6 +33,7 @@ class ToolsPage(QWidget):
             ("⏏  Éjecter un support", self.eject),
             ("📶  Bluetooth\n     (casque, enceinte)", self.bluetooth),
             ("📱  Télécommande\n     (téléphone Android)", self.remote_panel),
+            ("❓  Aide\n     (mode d'emploi)", self.show_help),
             ("⚙  Paramètres", self.settings_menu),
             ("⏻  Éteindre /\n     redémarrer", self.power),
         ]
@@ -262,6 +263,29 @@ class ToolsPage(QWidget):
                     q.player.stop()
             err = MediaWatcher.eject(mp)
             self.app.toast.show_msg(err or "Vous pouvez retirer le support en toute sécurité ✓", 5000)
+
+    # ------------------------------------------------------------------ aide
+    def show_help(self, topic="tactile"):
+        """Manuel d'utilisation affiché à l'écran : défilement au doigt, liens entre chapitres."""
+        from PySide6.QtWidgets import QScroller
+        from .. import help as H
+        d = Sheet(self, "❓ Aide de Musicothèque", 0.96, 0.96)
+        view = H.make_browser(d, topic)
+        view.setStyleSheet(f"font-size:{px(17)}px; background:#0d1117; color:#e6edf3; border:none")
+        view.document().setDefaultStyleSheet(
+            f"body{{font-size:{px(17)}px}} h1{{font-size:{px(26)}px}} h2{{font-size:{px(22)}px}} "
+            f"h3{{font-size:{px(19)}px}} td,th{{padding:{px(4)}px}} "
+            ".cap{color:#8b949e} .nav{color:#8b949e} code{color:#d2a8ff}")
+        if H.html_path(topic).exists():
+            view.setSource(H._url(topic))  # recharge avec la feuille de style tactile
+        QScroller.grabGesture(view.viewport(), QScroller.LeftMouseButtonGesture)
+        d.lay.addWidget(view, 1)
+        row = QHBoxLayout(); d.lay.addLayout(row)
+        row.addWidget(button("◀ Retour", view.backward))
+        row.addWidget(button("☰ Sommaire", lambda: view.setSource(H._url("accueil"))))
+        row.addWidget(button("📱 Version tactile", lambda: view.setSource(H._url("tactile"))))
+        row.addWidget(button("Fermer", d.accept, obj="primary"))
+        d.exec()
 
     # ------------------------------------------------------------------ télécommande
     def remote_panel(self):

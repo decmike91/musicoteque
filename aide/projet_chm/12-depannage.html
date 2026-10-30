@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr"><head><meta charset="utf-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1"><title>12. Dépannage, raccourcis et fichiers</title><link rel="stylesheet" href="aide.css"></head><body><h1>12. Dépannage, raccourcis et fichiers</h1><h3>Dépannage</h3>
+<table>
+<thead>
+<tr>
+<th>Problème</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>L'installation reste bloquée sur ffmpeg</td>
+<td>Attendez la fin du délai : l'installateur essaie un autre serveur, puis winget. Sinon, téléchargez ffmpeg (version « essentials ») et copiez <code>ffmpeg.exe</code> et <code>ffprobe.exe</code> dans le dossier <code>bin</code> de Musicothèque.</td>
+</tr>
+<tr>
+<td>Un titre n'est pas reconnu</td>
+<td>Vérifiez la clé AcoustID dans les Paramètres. Les enregistrements rares ou très récents peuvent manquer : complétez à la main (Ctrl+E).</td>
+</tr>
+<tr>
+<td>« Accès refusé » pendant le rangement</td>
+<td>Fermez le programme qui utilise le fichier, ou déverrouillez la clé USB, puis relancez le rangement. Les autres fichiers ont été traités normalement.</td>
+</tr>
+<tr>
+<td>Un WMA n'est pas converti</td>
+<td>Il est protégé contre la copie (DRM). Il reste à sa place et se lit avec le Lecteur Windows Media.</td>
+</tr>
+<tr>
+<td>Pas de son sur une sortie</td>
+<td>Utilisez le bouton  pour reconnaître la sortie, vérifiez qu'elle est <em>Active</em>, son volume et ses voies. Sur Raspberry Pi ou Banana Pi, ouvrez <code>alsamixer</code> et montez les réglages de sortie.</td>
+</tr>
+<tr>
+<td>Le casque Bluetooth n'apparaît pas</td>
+<td>Il doit d'abord être appairé (Windows : Paramètres ▸ Bluetooth ; Pi : Outils ▸ Bluetooth), puis le bouton ⟳ à côté du périphérique.</td>
+</tr>
+<tr>
+<td>Une nouvelle carte son n'est pas listée (Pi)</td>
+<td>Lancez <code>python3 -m app.setup_audio</code> dans le dossier de Musicothèque, ou <strong>Son ▸ Sortie et volume ▸ Rechercher les sorties audio</strong>.</td>
+</tr>
+<tr>
+<td>Le téléphone ne trouve pas le Pi</td>
+<td>Le téléphone doit être sur le même Wi-Fi (pas en 4G, pas sur un réseau invité). Saisissez l'adresse affichée dans Outils ▸ Télécommande.</td>
+</tr>
+<tr>
+<td>Le bas de la fenêtre est coupé</td>
+<td>La fenêtre s'adapte à l'écran. Si besoin, double-cliquez sur sa barre de titre pour l'agrandir, ou masquez le panneau Son (Ctrl+G).</td>
+</tr>
+</tbody>
+</table>
+<h3>Raccourcis clavier (Windows)</h3>
+<table>
+<thead>
+<tr>
+<th>Touche</th>
+<th>Action</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Espace</strong></td>
+<td>Lecture / pause</td>
+</tr>
+<tr>
+<td><strong>Ctrl+→</strong> / <strong>Ctrl+←</strong></td>
+<td>Titre suivant / précédent</td>
+</tr>
+<tr>
+<td><strong>Ctrl+O</strong></td>
+<td>Ajouter un dossier à la bibliothèque</td>
+</tr>
+<tr>
+<td><strong>F5</strong></td>
+<td>Actualiser la bibliothèque</td>
+</tr>
+<tr>
+<td><strong>Ctrl+R</strong></td>
+<td>Ranger / classer un emplacement</td>
+</tr>
+<tr>
+<td><strong>Ctrl+I</strong></td>
+<td>Identifier la sélection</td>
+</tr>
+<tr>
+<td><strong>Ctrl+E</strong></td>
+<td>Modifier les informations</td>
+</tr>
+<tr>
+<td><strong>Ctrl+Y</strong></td>
+<td>Lien YouTube → MP3</td>
+</tr>
+<tr>
+<td><strong>Ctrl+N</strong></td>
+<td>Nouvelle playlist</td>
+</tr>
+<tr>
+<td><strong>Ctrl+G</strong></td>
+<td>Afficher ou masquer le panneau Son</td>
+</tr>
+<tr>
+<td><strong>F1</strong></td>
+<td>Ouvrir l'aide</td>
+</tr>
+<tr>
+<td><strong>Ctrl+Q</strong></td>
+<td>Quitter</td>
+</tr>
+</tbody>
+</table>
+<h3>Où sont mes fichiers ?</h3>
+<p>Les réglages se trouvent dans <code>%APPDATA%\Musicotheque</code> sous Windows, et dans <code>~/.config/Musicotheque</code> sur Raspberry Pi.</p>
+<table>
+<thead>
+<tr>
+<th>Fichier</th>
+<th>Contenu</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>settings.json</code></td>
+<td>Paramètres, réglages du son, sorties</td>
+</tr>
+<tr>
+<td><code>bibliotheque.db</code></td>
+<td>Bibliothèque : titres, playlists, statistiques d'écoute</td>
+</tr>
+<tr>
+<td><code>profils\</code></td>
+<td>Profils audio (<code>.json</code>, échangeables entre Windows et le Pi)</td>
+</tr>
+<tr>
+<td><code>rangement_*.json</code></td>
+<td>Journaux de rangement, utilisés par <em>Annuler le dernier rangement</em></td>
+</tr>
+<tr>
+<td><code>peripheriques.json</code></td>
+<td>Noms des sorties audio (Pi)</td>
+</tr>
+</tbody>
+</table>
+<p>La musique elle-même reste dans le dossier de la bibliothèque choisi dans les Paramètres. Pour repartir de zéro sans perdre de musique, il suffit de supprimer <code>bibliotheque.db</code> : elle sera reconstruite à l'actualisation.</p><p class="nav"><a href="11-telecommande.html">◀ 11. Télécommande Android</a> &nbsp;·&nbsp; <a href="index.html">Sommaire</a></p></body></html>

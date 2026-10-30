@@ -5,6 +5,12 @@ Logiciel pour référencer, ranger, identifier, convertir et écouter votre musi
 - **Windows** : ce document.
 - **Raspberry Pi ou autre carte avec écran tactile** : voir **LISEZMOI_RASPBERRY.md**.
 
+## Aide et manuel
+- **F1** dans le logiciel (ou menu **Aide**) ouvre l'aide Windows `aide\Musicotheque.chm` : sommaire, index et recherche.
+- Manuel à imprimer : `aide\Musicotheque_Manuel.pdf`.
+- Sur Raspberry Pi : **Outils ▸ ❓ Aide**.
+- Pour modifier l'aide : éditez `docs\manuel.md`, puis `python docs\build_aide.py` (ou `aide\projet_chm\compiler_aide.bat` avec HTML Help Workshop).
+
 ## Installation (une seule fois)
 
 1. Décompressez le dossier où vous voulez (par ex. `C:\Programmes\Musicotheque`).
