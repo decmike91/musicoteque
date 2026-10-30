@@ -199,17 +199,22 @@ class TouchWindow(QWidget):
 
     # ------------------------------------------------------------------ identification
     def identify(self, paths):
+        aside = []
+
         def job(progress, log, cancel):
             ok = 0
             for i, p in enumerate(paths):
                 if cancel():
                     break
-                try:
-                    m = ident.auto_identify(p, overwrite=len(paths) == 1)
-                except Exception as e:
-                    m = None; log(f"Erreur : {e}")
-                if m:
-                    ok += 1; log("✓ " + m.label()); self.lib.upsert(read_tags(p))
+                m, why = ident.identify_or_set_aside(p, overwrite=len(paths) == 1, log=log)
+                if why:
+                    aside.append(p); log(f"⏸ mis de côté : {Path(p).name} — {why}")
+                elif m:
+                    ok += 1; log("✓ " + m.label())
+                    try:
+                        self.lib.upsert(read_tags(p))
+                    except Exception:      # noqa: BLE001
+                        pass
                 else:
                     log("✗ non reconnu : " + Path(p).name)
                 progress(i + 1, len(paths), p)
@@ -218,7 +223,13 @@ class TouchWindow(QWidget):
             self.toast.show_msg("Astuce : une clé AcoustID (Outils ▸ Paramètres) améliore la reconnaissance", 6000)
         n = run_task(self, "Identification des titres", job)
         self.library_changed()
-        self.toast.show_msg(f"{n or 0} / {len(paths)} titre(s) identifié(s)")
+        if aside:
+            info(self, "Fichiers mis de côté",
+                 f"{n or 0} / {len(paths)} titre(s) identifié(s).\n\n{len(aside)} fichier(s) n'ont pas pu être modifiés "
+                 "(accès refusé, clé USB protégée…) : ils ont été mis de côté, tous les autres ont été traités.\n\n"
+                 "Pour les revoir ou réessayer : Outils ▸ Compléter les infos manquantes.")
+        else:
+            self.toast.show_msg(f"{n or 0} / {len(paths)} titre(s) identifié(s)")
 
     def closeEvent(self, e):
         settings.save()

@@ -173,6 +173,29 @@ class ToolsPage(QWidget):
 
     # ------------------------------------------------------------------ identification
     def identify_all(self):
+        from .. import setaside
+        n_aside = setaside.count()
+        if n_aside:
+            what = choose(self, "Compléter les infos", [
+                ("Compléter tous les titres incomplets", "all"),
+                (f"Réessayer les {n_aside} fichier(s) mis de côté", "retry"),
+                ("Voir les fichiers mis de côté", "list"),
+                ("Vider la liste des fichiers mis de côté", "clear")])
+            if what is None:
+                return
+            if what == "retry":
+                self.app.identify(setaside.paths()); return
+            if what == "list":
+                items = setaside.load()
+                txt = "\n".join(f"• {Path(i['path']).name} — {i.get('reason', '')}\n   {Path(i['path']).parent}"
+                                for i in items[:12])
+                if len(items) > 12:
+                    txt += f"\n… et {len(items) - 12} autre(s)"
+                info(self, f"Fichiers mis de côté ({len(items)})",
+                     txt + "\n\nFermez le programme qui les utilise ou déverrouillez la clé USB, puis « Réessayer ».")
+                return
+            if what == "clear":
+                setaside.clear(); self.app.toast.show_msg("Liste vidée"); return
         paths = [r["path"] for r in self.app.lib.tracks(incomplete_only=True)]
         if not paths:
             info(self, "Identifier", "Tous les titres ont déjà leurs informations. 👍"); return

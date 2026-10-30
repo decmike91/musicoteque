@@ -4,6 +4,7 @@
 3) pochette depuis Cover Art Archive,
 4) à défaut, recherche texte MusicBrainz à partir du nom de fichier.
 """
+from pathlib import Path
 import os
 from dataclasses import dataclass
 
@@ -186,3 +187,24 @@ def auto_identify(path: str, min_score=0.80, overwrite=False) -> Match | None:
     m = complete(cands[0], read_tags(path).album)
     apply_match(path, m, overwrite=overwrite)
     return m
+
+
+def identify_or_set_aside(path: str, min_score=0.80, overwrite=False, log=None):
+    """Comme auto_identify, mais ne lève jamais d'erreur : un fichier protégé (accès refusé, ouvert
+    dans un autre programme…) est mis de côté et l'appelant passe au suivant.
+    Renvoie (match ou None, raison si mis de côté sinon None)."""
+    from . import setaside
+    from .organizer import friendly_error
+    # vérifié d'abord (et lecture seule retirée) : inutile d'écouter un fichier qu'on ne pourra pas modifier
+    why = setaside.check_access(path, on_unlock=(lambda p: log(f"🔓 lecture seule retirée : {Path(p).name}"))
+                                if log else None)
+    if why is None:
+        try:
+            m = auto_identify(path, min_score=min_score, overwrite=overwrite)
+        except Exception as e:                   # noqa: BLE001 - un fichier ne doit jamais arrêter les autres
+            why = friendly_error(e)
+        else:
+            setaside.remove([path])
+            return m, None
+    setaside.add(path, why, "identification")
+    return None, setaside.short_reason(why)

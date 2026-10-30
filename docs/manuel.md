@@ -145,6 +145,15 @@ Musicothèque écoute le morceau, calcule son empreinte sonore et la compare à 
 - Aucune proposition ne convient ? Saisissez l'artiste et le titre dans *Recherche manuelle*, puis *Chercher*. *Passer* va au titre suivant.
 - Sans clé AcoustID, l'identification se fait d'après le nom du fichier (moins fiable). La clé se saisit dans *Fichier ▸ Paramètres* (voir chapitre 2).
 
+### Fichiers en lecture seule ou protégés
+
+Pour compléter un titre, Musicothèque doit pouvoir modifier le fichier. Avant de l'écouter, elle vérifie qu'il est modifiable :
+
+- **Fichier en lecture seule** (fréquent après une copie depuis un CD) : la lecture seule est **retirée automatiquement**, le journal affiche « 🔓 lecture seule retirée », et le fichier est complété normalement.
+- **Lecture seule impossible à retirer** (fichier protégé par Windows, ouvert dans un autre programme, clé USB verrouillée) : le fichier est **mis de côté** (« ⏸ mis de côté »), et le traitement **continue avec les fichiers suivants**.
+
+La liste se retrouve dans **Identifier ▸ Fichiers mis de côté** (sur le Pi : *Outils ▸ Compléter les infos manquantes*). Fermez le programme qui utilise le fichier ou déverrouillez la clé, puis **Réessayer**. Les fichiers réussis quittent la liste.
+
 ### Modifier les informations à la main
 
 Clic droit ▸ *Modifier les informations* (Ctrl+E).
@@ -357,6 +366,7 @@ Sur le Pi, ouvrez **Outils ▸ 📱 Télécommande** et scannez le **QR code** a
 | --- | --- |
 | L'installation reste bloquée sur ffmpeg | Attendez la fin du délai : l'installateur essaie un autre serveur, puis winget. Sinon, téléchargez ffmpeg (version « essentials ») et copiez `ffmpeg.exe` et `ffprobe.exe` dans le dossier `bin` de Musicothèque. |
 | Un titre n'est pas reconnu | Vérifiez la clé AcoustID dans les Paramètres. Les enregistrements rares ou très récents peuvent manquer : complétez à la main (Ctrl+E). |
+| « Accès refusé » pendant l'identification | La lecture seule est retirée automatiquement. Si c'est impossible, le fichier est mis de côté et les autres sont traités : voir **Identifier ▸ Fichiers mis de côté**, puis *Réessayer* après avoir fermé le programme qui l'utilise. |
 | « Accès refusé » pendant le rangement | Fermez le programme qui utilise le fichier, ou déverrouillez la clé USB, puis relancez le rangement. Les autres fichiers ont été traités normalement. |
 | Un WMA n'est pas converti | Il est protégé contre la copie (DRM). Il reste à sa place et se lit avec le Lecteur Windows Media. |
 | Pas de son sur une sortie | Utilisez le bouton 🔔 pour reconnaître la sortie, vérifiez qu'elle est *Active*, son volume et ses voies. Sur Raspberry Pi ou Banana Pi, ouvrez `alsamixer` et montez les réglages de sortie. |

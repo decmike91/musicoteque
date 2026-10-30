@@ -58,7 +58,7 @@ INDEX = {
     "Banana Pi": [2, 10], "Basses (renfort)": [7], "Bibliothèque": [4], "Bluetooth": [9, 10, 12], "CD audio": [6],
     "Clé USB": [5, 10], "Conversion en MP3": [5, 6], "Corbeille": [5], "Doublons": [5], "DRM": [5, 12],
     "Égaliseur": [7], "Écran (taille)": [10, 12], "ffmpeg": [2, 12], "Fichiers (emplacement)": [12],
-    "Fichiers protégés (accès refusé)": [5, 12], "File de lecture": [4], "Identifier un titre": [6],
+    "Fichiers protégés (accès refusé)": [5, 6, 12], "Lecture seule": [5, 6, 12], "Fichiers mis de côté": [6, 12], "File de lecture": [4], "Identifier un titre": [6],
     "Installation": [2], "Lecteur 2 et 3": [9, 10], "M3U": [4], "Métadonnées": [6], "OGG": [5],
     "Pochette": [6], "Profils audio": [7], "QR code": [11], "Raccourcis clavier": [12], "Ranger et classer": [5],
     "Raspberry Pi": [2, 10], "Recherche": [4, 10], "Retard (alignement)": [9], "Réverbération": [7],

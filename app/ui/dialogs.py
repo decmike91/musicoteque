@@ -1,7 +1,7 @@
 """Fenêtres : rangement, identification, éditeur de tags, CD, YouTube, paramètres, effets."""
 from pathlib import Path
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt, Signal, QTimer
 from PySide6.QtGui import QPixmap, QColor, QDesktopServices
 from PySide6.QtCore import QUrl
 from PySide6.QtWidgets import (
@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 )
 
 from ..config import settings, tool
-from .. import organizer, identify, converters
+from .. import organizer, identify, converters, setaside
 from ..tags import read_tags, write_tags, read_cover
 from .widgets import Worker, Knob, fit_to_screen
 
@@ -196,18 +196,28 @@ class OrganizeDialog(QDialog, LogMixin):
 def task_plan(src, dest, pattern, ident, progress, log, cancel, dup_mode="delete", convert_wav=True, existing=None):
     from ..library import iter_audio_files
     if ident:
-        files = list(iter_audio_files(src))
-        todo = [f for f in files if read_tags(f).is_incomplete]
+        todo = []
+        for f in iter_audio_files(src):
+            try:
+                if read_tags(f).is_incomplete:
+                    todo.append(f)
+            except Exception:              # illisible : l'analyse le signalera, on continue
+                pass
         log(f"Identification en ligne de {len(todo)} titres incomplets…")
+        aside = []
         for i, f in enumerate(todo):
             if cancel():
                 break
-            try:
-                m = identify.auto_identify(f)
+            m, why = identify.identify_or_set_aside(f, log=log)
+            if why:
+                aside.append(f)
+                log(f"⏸ mis de côté : {Path(f).name} — {why}")
+            else:
                 log(("✓ " + m.label()) if m else ("✗ non reconnu : " + Path(f).name))
-            except Exception as e:
-                log(f"⚠ {Path(f).name} : {organizer.friendly_error(e)} — on passe au suivant")
             progress(i + 1, len(todo), f)
+        if aside:
+            log(f"{len(aside)} fichier(s) mis de côté, les autres ont été traités. "
+                "Liste : menu Identifier ▸ Fichiers mis de côté.")
     log("Analyse des fichiers…")
     return organizer.plan(src, dest, pattern, progress=progress, cancel=cancel, dup_mode=dup_mode,
                           convert_wav=convert_wav, existing=existing)
@@ -225,7 +235,7 @@ class IdentifyDialog(QDialog):
 
     def __init__(self, paths, parent=None):
         super().__init__(parent)
-        self.paths, self.i = list(paths), 0
+        self.paths, self.i, self.skipped = list(paths), 0, 0
         self.setWindowTitle("Identifier le titre (empreinte audio)"); fit_to_screen(self, 760, 520)
         lay = QVBoxLayout(self)
         self.head = QLabel(); self.head.setWordWrap(True); lay.addWidget(self.head)
@@ -257,13 +267,37 @@ class IdentifyDialog(QDialog):
         self.head.setText(f"<b>{self.i + 1}/{len(self.paths)}</b> — {Path(p).name}")
         self.cur.setText(f"Actuellement : {t.artist or '?'} — {t.title or '?'} [{t.album or '?'}]")
         self.q_artist.setText(t.artist); self.q_title.setText(t.title)
-        self.list.clear(); self.list.addItem("Écoute et recherche en cours…")
+        self.list.clear()
+        unlocked = []
+        why = setaside.check_access(p, on_unlock=unlocked.append)
+        if why:
+            self.set_aside(why); return
+        if unlocked:
+            self.list.addItem("🔓 Lecture seule retirée pour pouvoir compléter ce fichier.")
+        self.list.addItem("Écoute et recherche en cours…")
         if not settings.get("acoustid_key"):
             self.head.setText(self.head.text() + "<br><span style='color:#d29922'>Sans clé AcoustID (Paramètres), "
                               "la reconnaissance se fait seulement par le nom de fichier.</span>")
         self.w = Worker(lambda path, progress, log, cancel: identify.candidates(path), p)
-        self.w.done.connect(self.show_cands); self.w.failed.connect(lambda e: self.list.addItem("Erreur : " + e))
+        self.w.done.connect(self.show_cands)
+        self.w.failed.connect(lambda e: self.list.addItem("Recherche impossible : " + organizer.friendly_error(Exception(e))
+                                                          + ". Essayez la recherche manuelle ou « Passer »."))
         self.w.start()
+
+    def set_aside(self, why):
+        """Fichier protégé : noté dans « Fichiers mis de côté », puis passage automatique au suivant."""
+        p = self.paths[self.i]
+        setaside.add(p, why, "identification")
+        why = setaside.short_reason(why)
+        self.skipped += 1
+        self.list.clear()
+        self.list.addItem(f"⏸ {Path(p).name} est mis de côté : {why}.")
+        self.list.addItem("Passage au titre suivant…" if self.i + 1 < len(self.paths) else
+                          "C'était le dernier titre. Liste : menu Identifier ▸ Fichiers mis de côté.")
+        self.b_apply.setEnabled(True)
+        idx = self.i     # « Passer » cliqué entre-temps : ne pas sauter un titre de plus
+        QTimer.singleShot(1800 if self.i + 1 < len(self.paths) else 3500,
+                          lambda: self.next() if self.i == idx and self.isVisible() else None)
 
     def search_text(self):
         self.list.clear(); self.list.addItem("Recherche…")
@@ -288,16 +322,23 @@ class IdentifyDialog(QDialog):
         p = self.paths[self.i]
 
         def job(progress, log, cancel):
-            full = identify.complete(m, read_tags(p).album)
-            identify.apply_match(p, full, overwrite=self.cb_over.isChecked(), with_cover=self.cb_cover.isChecked())
-            return full
+            try:
+                full = identify.complete(m, read_tags(p).album)
+                identify.apply_match(p, full, overwrite=self.cb_over.isChecked(), with_cover=self.cb_cover.isChecked())
+            except Exception as e:          # noqa: BLE001 - accès refusé… : mis de côté, on continue
+                return organizer.friendly_error(e)
+            setaside.remove([p])
+            return None
         self.w = Worker(job)
-        self.w.done.connect(lambda _: (self.b_apply.setEnabled(True), self.changed.emit(), self.next()))
-        self.w.failed.connect(lambda e: (self.b_apply.setEnabled(True), QMessageBox.warning(self, "Erreur", e)))
+        self.w.done.connect(lambda why: self.set_aside(why) if why else
+                            (self.b_apply.setEnabled(True), self.changed.emit(), self.next()))
+        self.w.failed.connect(lambda e: self.set_aside(organizer.friendly_error(Exception(e))))
         self.w.start()
 
     def next(self):
-        self.i += 1; self.load()
+        if self.i < len(self.paths):
+            self.i += 1
+            self.load()
 
 
 class BatchIdentifyDialog(QDialog, LogMixin):
@@ -314,27 +355,96 @@ class BatchIdentifyDialog(QDialog, LogMixin):
         self.w = Worker(self.job, paths)
         b.clicked.connect(self.w.cancel)
         self.w.progress.connect(self.on_progress); self.w.log.connect(self.log)
-        self.w.done.connect(lambda r: (self.log(f"Terminé : {r[0]} identifiés, {r[1]} non reconnus."), self.changed.emit()))
+        self.w.done.connect(lambda r: (self.log(f"Terminé : {r[0]} identifiés, {r[1]} non reconnus"
+                                                 + (f", {r[2]} mis de côté (menu Identifier ▸ Fichiers mis de côté)."
+                                                    if r[2] else ".")), self.changed.emit()))
+        self.w.failed.connect(lambda e: self.log("Arrêt inattendu : " + e))
         self.w.start()
 
     @staticmethod
     def job(paths, progress, log, cancel):
-        ok = ko = 0
+        ok = ko = aside = 0
         if not settings.get("acoustid_key"):
             log("Pas de clé AcoustID : recherche par nom de fichier uniquement (moins fiable).")
         for i, p in enumerate(paths):
             if cancel():
                 break
-            try:
-                m = identify.auto_identify(p)
-            except Exception as e:
-                m = None; log(f"Erreur {Path(p).name} : {e}")
-            if m:
+            m, why = identify.identify_or_set_aside(p, log=log)
+            if why:
+                aside += 1; log(f"⏸ mis de côté : {Path(p).name} — {why}")
+            elif m:
                 ok += 1; log("✓ " + m.label())
             else:
                 ko += 1; log("✗ " + Path(p).name)
             progress(i + 1, len(paths), p)
-        return ok, ko
+        return ok, ko, aside
+
+
+class SetAsideDialog(QDialog):
+    """Liste des fichiers mis de côté pendant l'identification, avec Réessayer / Ouvrir le dossier / Retirer."""
+    changed = Signal()
+
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        self.setWindowTitle("Fichiers mis de côté"); fit_to_screen(self, 1050, 480)
+        lay = QVBoxLayout(self)
+        intro = QLabel("Ces fichiers ont été sautés parce qu'ils n'ont pas pu être lus ou modifiés : fichier ouvert "
+                       "dans un autre programme, en lecture seule, dossier ou clé USB protégés… "
+                       "Fermez le programme concerné (lecteur, explorateur de fichiers, antivirus…) puis cliquez "
+                       "sur « Réessayer ».")
+        intro.setWordWrap(True); lay.addWidget(intro)
+        self.table = QTableWidget(0, 4)
+        self.table.setHorizontalHeaderLabels(["Fichier", "Raison", "Date", "Dossier"])
+        self.table.setSelectionBehavior(QTableWidget.SelectRows)
+        self.table.setEditTriggers(QTableWidget.NoEditTriggers)
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.itemDoubleClicked.connect(lambda _: self.open_folder())
+        lay.addWidget(self.table, 1)
+        row = QHBoxLayout()
+        for text, fn in (("Réessayer tout", self.retry_all), ("Réessayer la sélection", self.retry_sel),
+                         ("Ouvrir le dossier", self.open_folder), ("Retirer de la liste", self.remove_sel)):
+            b = QPushButton(text); b.clicked.connect(fn); row.addWidget(b)
+        row.addStretch()
+        b = QPushButton("Fermer"); b.clicked.connect(self.accept); row.addWidget(b)
+        lay.addLayout(row)
+        self.refresh()
+
+    def refresh(self):
+        items = setaside.load()
+        self.table.setRowCount(len(items))
+        for r, it in enumerate(items):
+            p = Path(it["path"])
+            for c, v in enumerate((p.name, it.get("reason", ""), it.get("date", ""), str(p.parent))):
+                cell = QTableWidgetItem(v); cell.setData(Qt.UserRole, it["path"]); cell.setToolTip(it["path"])
+                self.table.setItem(r, c, cell)
+        self.table.resizeColumnsToContents()
+        self.setWindowTitle(f"Fichiers mis de côté ({len(items)})")
+
+    def selected(self):
+        rows = {i.row() for i in self.table.selectedIndexes()}
+        return [self.table.item(r, 0).data(Qt.UserRole) for r in sorted(rows)]
+
+    def retry(self, paths):
+        if not paths:
+            return
+        d = BatchIdentifyDialog(paths, self)
+        d.changed.connect(lambda: (self.refresh(), self.changed.emit()))
+        d.exec()
+        self.refresh()
+
+    def retry_all(self):
+        self.retry(setaside.paths())
+
+    def retry_sel(self):
+        self.retry(self.selected())
+
+    def open_folder(self):
+        sel = self.selected()
+        if sel:
+            QDesktopServices.openUrl(QUrl.fromLocalFile(str(Path(sel[0]).parent)))
+
+    def remove_sel(self):
+        setaside.remove(self.selected()); self.refresh(); self.changed.emit()
 
 
 # =============================================================== Éditeur de tags

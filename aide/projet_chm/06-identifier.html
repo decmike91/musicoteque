@@ -9,6 +9,13 @@
 <li>Aucune proposition ne convient ? Saisissez l'artiste et le titre dans <em>Recherche manuelle</em>, puis <em>Chercher</em>. <em>Passer</em> va au titre suivant.</li>
 <li>Sans clé AcoustID, l'identification se fait d'après le nom du fichier (moins fiable). La clé se saisit dans <em>Fichier ▸ Paramètres</em> (voir <a href="02-installation.html">chapitre 2</a>).</li>
 </ul>
+<h3>Fichiers en lecture seule ou protégés</h3>
+<p>Pour compléter un titre, Musicothèque doit pouvoir modifier le fichier. Avant de l'écouter, elle vérifie qu'il est modifiable :</p>
+<ul>
+<li><strong>Fichier en lecture seule</strong> (fréquent après une copie depuis un CD) : la lecture seule est <strong>retirée automatiquement</strong>, le journal affiche «  lecture seule retirée », et le fichier est complété normalement.</li>
+<li><strong>Lecture seule impossible à retirer</strong> (fichier protégé par Windows, ouvert dans un autre programme, clé USB verrouillée) : le fichier est <strong>mis de côté</strong> («  mis de côté »), et le traitement <strong>continue avec les fichiers suivants</strong>.</li>
+</ul>
+<p>La liste se retrouve dans <strong>Identifier ▸ Fichiers mis de côté</strong> (sur le Pi : <em>Outils ▸ Compléter les infos manquantes</em>). Fermez le programme qui utilise le fichier ou déverrouillez la clé, puis <strong>Réessayer</strong>. Les fichiers réussis quittent la liste.</p>
 <h3>Modifier les informations à la main</h3>
 <p>Clic droit ▸ <em>Modifier les informations</em> (Ctrl+E).</p>
 <div class="fig screen"><img src="images/modifier_infos.png" alt="Modifier les informations d&#x27;un titre."><div class="cap">Modifier les informations d&#x27;un titre.</div></div>

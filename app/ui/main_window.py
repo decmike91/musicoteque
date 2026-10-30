@@ -17,6 +17,7 @@ from PySide6.QtWidgets import (
 
 from ..config import settings, APP_NAME, tool
 from ..library import Library
+from .. import setaside
 from ..tags import read_tags, read_cover
 from ..audio_engine import AudioHub, MAX_SOURCES
 from ..playqueue import PlayQueue
@@ -153,6 +154,9 @@ class MainWindow(QMainWindow):
         self._act(m, "Identifier la sélection (empreinte audio)…", self.identify_selected, "Ctrl+I")
         self._act(m, "Compléter automatiquement tous les titres incomplets", self.identify_all_incomplete)
         self._act(m, "Modifier les informations de la sélection…", self.edit_tags, "Ctrl+E")
+        m.addSeparator()
+        self.act_aside = self._act(m, "Fichiers mis de côté…", self.show_set_aside)
+        m.aboutToShow.connect(lambda: self.act_aside.setText(f"Fichiers mis de côté ({setaside.count()})…"))
         m = mb.addMenu("&Convertir")
         self._act(m, "CD audio → MP3…", self.open_cd)
         self._act(m, "Lien YouTube → MP3…", self.open_youtube, "Ctrl+Y")
@@ -701,9 +705,11 @@ class MainWindow(QMainWindow):
 
     # ------------------------------------------------------------------ outils
     def organize(self, source=""):
+        before = set(setaside.paths())
         d = dialogs.OrganizeDialog(self.lib, self, source if isinstance(source, str) else "")
         d.finished_ok.connect(lambda: (self.refresh_tree(), self.refresh_tracks()))
         d.exec()
+        self._report_set_aside(list(set(setaside.paths()) - before))
 
     def identify_selected(self):
         self._identify(self.selected_paths())
@@ -713,6 +719,7 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Identifier", "Sélectionnez un ou plusieurs titres dans la liste."); return
         d = dialogs.IdentifyDialog(paths, self)
         d.changed.connect(lambda: self._reload_paths(paths)); d.exec()
+        self._report_set_aside(paths)
 
     def identify_all_incomplete(self):
         paths = [r["path"] for r in self.lib.tracks(incomplete_only=True)]
@@ -720,6 +727,24 @@ class MainWindow(QMainWindow):
             QMessageBox.information(self, "Identifier", "Tous les titres ont déjà leurs informations. 👍"); return
         d = dialogs.BatchIdentifyDialog(paths, self)
         d.changed.connect(lambda: self._reload_paths(paths)); d.exec()
+        self._report_set_aside(paths)
+
+    def _report_set_aside(self, paths):
+        """En fin d'identification : signale les fichiers sautés (sans avoir interrompu les autres)."""
+        n = len(set(paths) & set(setaside.paths()))
+        if n and QMessageBox.question(
+                self, "Fichiers mis de côté",
+                f"{n} fichier(s) n'ont pas pu être modifiés (accès refusé ou fichier utilisé par un autre "
+                "programme) : ils ont été mis de côté et tous les autres ont été traités.\n\n"
+                "Afficher la liste ?") == QMessageBox.Yes:
+            self.show_set_aside()
+
+    def show_set_aside(self):
+        snapshot = setaside.paths()       # les fichiers réussis quittent la liste : on recharge l'ensemble
+        d = dialogs.SetAsideDialog(self)
+        d.changed.connect(lambda: self._reload_paths(snapshot))
+        d.exec()
+        self.refresh_tree(); self.refresh_tracks()
 
     def edit_tags(self):
         self._edit(self.selected_paths())
