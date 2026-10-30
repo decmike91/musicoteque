@@ -220,7 +220,7 @@ def task_plan(src, dest, pattern, ident, progress, log, cancel, dup_mode="delete
                 "les autres ont été traités. Liste : menu Identifier ▸ Fichiers mis de côté.")
     log("Analyse des fichiers…")
     return organizer.plan(src, dest, pattern, progress=progress, cancel=cancel, dup_mode=dup_mode,
-                          convert_wav=convert_wav, existing=existing)
+                          convert_wav=convert_wav, existing=existing, log_fn=log)
 
 
 def task_execute(moves, copy, lib, progress, log, cancel):
@@ -325,7 +325,9 @@ class IdentifyDialog(QDialog):
         def job(progress, log, cancel):
             try:
                 full = identify.complete(m, read_tags(p).album)
-                identify.apply_match(p, full, overwrite=self.cb_over.isChecked(), with_cover=self.cb_cover.isChecked())
+                from ..tagrepair import run_with_repair
+                run_with_repair(lambda: identify.apply_match(p, full, overwrite=self.cb_over.isChecked(),
+                                                             with_cover=self.cb_cover.isChecked()), p)
             except Exception as e:          # noqa: BLE001 - mis de côté ou dossier tampon, on continue
                 return setaside.handle_error(p, e)
             setaside.remove([p])
@@ -506,12 +508,18 @@ class TagEditor(QDialog):
                     vals[k] = int(vals[k])
                 except ValueError:
                     vals[k] = None
-        failed = []
+        from ..tagrepair import run_with_repair
+        failed, repaired = [], []
         for p in self.paths:
-            try:
-                write_tags(p, cover=self.cover, **vals)
+            try:   # tags abîmés : reconstruits (son intact), puis modification réessayée
+                run_with_repair(lambda p=p: write_tags(p, cover=self.cover, **vals), p,
+                                lambda msg, p=p: repaired.append(Path(p).name) if msg.startswith("🔧") else None)
             except Exception as e:
                 failed.append(f"{Path(p).name} : {organizer.friendly_error(e)}")
+        if repaired:
+            QMessageBox.information(self, "Informations", f"{len(repaired)} fichier(s) avaient des informations "
+                                    "endommagées : elles ont été reconstruites (le son n'a pas été modifié).\n\n"
+                                    + "\n".join(repaired[:15]))
         if failed:
             QMessageBox.warning(self, "Informations", "Ces fichiers n'ont pas pu être modifiés :\n\n" + "\n".join(failed[:15]))
         self.accept()

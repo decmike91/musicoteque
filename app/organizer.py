@@ -98,10 +98,13 @@ def quick_hash(path, block=1 << 16) -> str:
     return h.hexdigest()
 
 
+from .tagrepair import run_with_repair   # noqa: E402
+
+
 def plan(source: str | Path, dest_root: str | Path | None = None,
          pattern="{artist}/{album}/{track:02d} - {title}", use_filename=True,
          progress=None, cancel=lambda: False, dup_mode="delete", convert_wav=True,
-         existing=None, same_song=True) -> list[Move]:
+         existing=None, same_song=True, log_fn=None) -> list[Move]:
     """Prépare le rangement (rien n'est modifié).
     dup_mode : "delete" = doublons supprimés (ou non copiés), "aside" = mis dans _Doublons.
     convert_wav : les WAV/AIFF deviennent des MP3.
@@ -118,14 +121,16 @@ def plan(source: str | Path, dest_root: str | Path | None = None,
             break
         if progress:
             progress(i + 1, len(files), p)
-        try:
+        def _read(p=p):
             t = read_tags(p)
             if use_filename and (not t.title or not t.artist):
                 g = guess_from_filename(p)
                 t.title = t.title or g.get("title", "")
                 t.artist = t.artist or g.get("artist", "")
                 t.track = t.track or g.get("track", 0)
-            h = quick_hash(p)
+            return t, quick_hash(p)
+        try:   # tags abîmés : reconstruits (son intact), puis relus
+            t, h = run_with_repair(_read, p, log_fn)
         except Exception as e:       # fichier illisible : signalé, puis on continue
             unreadable.append(_error_move(p, None, e, dest_root))
             continue
@@ -396,7 +401,17 @@ def execute(moves: list[Move], copy=False, library=None, progress=None, cancel=l
             break
         entry = {"src": m.src, "dst": m.dst, "copy": copy, "status": m.status}
         try:
-            _execute_one(m, entry, copy, library, write_guessed, bitrate, say, stats)
+            try:
+                _execute_one(m, entry, copy, library, write_guessed, bitrate, say, stats)
+            except Exception as e1:      # tags abîmés : réparés sur place (son intact), puis on réessaie
+                from .setaside import is_access_error
+                from .tagrepair import can_repair, repair
+                if (is_access_error(e1) or m.status in ("erreur", BUFFER_STATUS) or not os.path.exists(m.src)
+                        or not can_repair(m.src) or copy or not repair(m.src, say)):
+                    raise
+                entry.clear(); entry.update({"src": m.src, "dst": m.dst, "copy": copy, "status": m.status,
+                                             "repaired": True})
+                _execute_one(m, entry, copy, library, write_guessed, bitrate, say, stats)
         except Exception as e:
             from .setaside import is_access_error, to_buffer, BUFFER_NAME
             entry["error"] = friendly_error(e)
@@ -513,9 +528,10 @@ def _execute_one(m: Move, entry, copy, library, write_guessed, bitrate, say, sta
             cur = read_tags(m.dst)
             if (not cur.title and m.info.title) or (not cur.artist and m.info.artist):
                 make_writable(m.dst)
-                write_tags(m.dst, title=None if cur.title else m.info.title,
-                           artist=None if cur.artist else m.info.artist,
-                           track=None if cur.track else (m.info.track or None))
+                run_with_repair(lambda: write_tags(m.dst, title=None if cur.title else m.info.title,
+                                                   artist=None if cur.artist else m.info.artist,
+                                                   track=None if cur.track else (m.info.track or None)),
+                                m.dst, say)
                 _upsert(library, m.dst)
         except Exception as e:     # le fichier est rangé ; seules les infos n'ont pas pu être écrites
             say(f"ℹ {Path(m.dst).name} : rangé, mais infos non enregistrées ({friendly_error(e, True)})")

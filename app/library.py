@@ -24,7 +24,7 @@ def iter_audio_files(root: str | Path):
         dirnames[:] = [d for d in dirnames if not d.startswith((".", "$"))
                        and d not in ("System Volume Information", "_Fichiers à vérifier")]   # dossier tampon
         for n in filenames:
-            if Path(n).suffix.lower() in AUDIO_EXTS:
+            if Path(n).suffix.lower() in AUDIO_EXTS and ".reparation-en-cours." not in n:
                 yield str(Path(dirpath) / n)
 
 

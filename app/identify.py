@@ -179,13 +179,15 @@ def apply_match(path: str, m: Match, overwrite=False, with_cover=True):
                mb_recording_id=m.recording_id or None)
 
 
-def auto_identify(path: str, min_score=0.80, overwrite=False) -> Match | None:
-    """Identification automatique : applique la meilleure proposition si elle est sûre."""
+def auto_identify(path: str, min_score=0.80, overwrite=False, log=None) -> Match | None:
+    """Identification automatique : applique la meilleure proposition si elle est sûre.
+    Tags abîmés (« not a Frame instance »…) : réparés automatiquement, puis écriture réessayée."""
+    from .tagrepair import run_with_repair
     cands = candidates(path)
     if not cands or cands[0].score < min_score:
         return None
     m = complete(cands[0], read_tags(path).album)
-    apply_match(path, m, overwrite=overwrite)
+    run_with_repair(lambda: apply_match(path, m, overwrite=overwrite), path, log)
     return m
 
 
@@ -193,7 +195,8 @@ def identify_or_set_aside(path: str, min_score=0.80, overwrite=False, log=None, 
     """Comme auto_identify, mais ne lève jamais d'erreur, pour que les autres fichiers soient traités :
     - lecture seule : retirée, puis le fichier est complété ;
     - accès refusé impossible à lever : fichier mis de côté, laissé en place ;
-    - autre erreur (tags endommagés « not a Frame instance »…) : fichier placé dans le dossier tampon.
+    - tags endommagés (« not a Frame instance »…) : tags reconstruits, son intact, puis fichier complété ;
+    - réparation impossible ou autre erreur : fichier placé dans le dossier tampon.
     Renvoie (match ou None, texte pour le journal si le fichier a été écarté, sinon None)."""
     from . import setaside
     # vérifié d'abord (et lecture seule retirée) : inutile d'écouter un fichier qu'on ne pourra pas modifier
@@ -203,7 +206,7 @@ def identify_or_set_aside(path: str, min_score=0.80, overwrite=False, log=None, 
         setaside.add(path, why, "identification")
         return None, setaside.short_reason(why)
     try:
-        m = auto_identify(path, min_score=min_score, overwrite=overwrite)
+        m = auto_identify(path, min_score=min_score, overwrite=overwrite, log=log)
     except Exception as e:                       # noqa: BLE001 - un fichier ne doit jamais arrêter les autres
         return None, setaside.handle_error(path, e, buffer_base)
     setaside.remove([path])
