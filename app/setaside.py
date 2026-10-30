@@ -119,3 +119,83 @@ def is_read_only(path) -> bool:
         return not (os.stat(path).st_mode & stat.S_IWRITE)
     except OSError:
         return False
+
+
+# ------------------------------------------------------------------ dossier tampon
+BUFFER_NAME = "_Fichiers à vérifier"
+
+
+def buffer_dir(base=None) -> Path:
+    """Dossier tampon : là où vont les fichiers qui provoquent une erreur (tags endommagés…)."""
+    if not base:
+        from .config import settings
+        base = settings["library_root"]
+    return Path(base) / BUFFER_NAME
+
+
+def is_access_error(e: BaseException) -> bool:
+    """Accès refusé / fichier verrouillé : ces fichiers restent en place (ils ne pourraient pas être déplacés)."""
+    errno_ = getattr(e, "errno", None) or getattr(getattr(e, "__context__", None), "errno", None)
+    txt = str(e)
+    return (isinstance(e, PermissionError) or errno_ in (1, 13) or "denied" in txt.lower()
+            or "refusé" in txt.lower() or "[WinError 5]" in txt or "[WinError 32]" in txt)
+
+
+def to_buffer(path, reason, base=None, copy=False) -> str | None:
+    """Range le fichier dans le dossier tampon (nom rendu unique) et note la raison dans _raisons.txt.
+    Renvoie le nouveau chemin, ou None si le fichier n'a pas pu y être placé (il reste alors en place)."""
+    import shutil
+    from .organizer import move_file
+    src = Path(path)
+    dest_dir = buffer_dir(base)
+    try:
+        dest_dir.mkdir(parents=True, exist_ok=True)
+        dst = dest_dir / src.name
+        n = 2
+        while dst.exists():
+            dst = dest_dir / f"{src.stem} ({n}){src.suffix}"
+            n += 1
+        if copy:
+            shutil.copy2(src, dst)
+        elif not move_file(str(src), str(dst)):
+            # copié mais l'original n'a pas pu être retiré : on garde la copie, l'original reste noté
+            pass
+    except OSError:
+        return None
+    reason = short_reason(reason)
+    try:
+        with open(dest_dir / "_raisons.txt", "a", encoding="utf-8") as f:
+            f.write(f"{time.strftime('%Y-%m-%d %H:%M')}  {dst.name}\n    origine : {src}\n    raison  : {reason}\n\n")
+    except OSError:
+        pass
+    with _lock:
+        items = [i for i in load() if i["path"] not in (str(src), str(dst))]
+        items.append({"path": str(dst), "origin": str(src), "reason": reason, "step": "tampon",
+                      "date": time.strftime("%Y-%m-%d %H:%M")})
+        _save(items)
+    return str(dst)
+
+
+def handle_error(path, e, base=None, step="identification", copy=False):
+    """Erreur sur un fichier : accès refusé -> mis de côté sur place ; autre erreur -> dossier tampon.
+    Renvoie le texte à afficher dans le journal."""
+    from .organizer import friendly_error
+    why = friendly_error(e)
+    if not is_access_error(e):
+        new = to_buffer(path, why, base, copy=copy)
+        if new:
+            return f"placé dans « {BUFFER_NAME} » ({Path(new).parent}) — {short_reason(why)}"
+    add(path, why, step)
+    return short_reason(why)
+
+
+def log_line(path, why) -> str:
+    """Ligne de journal pour un fichier écarté (dossier tampon ou mis de côté)."""
+    name = Path(path).name
+    return f"📦 {name} {why}" if why.startswith("placé dans") else f"⏸ mis de côté : {name} — {why}"
+
+
+def matching(paths) -> list[dict]:
+    """Éléments de la liste qui concernent ces fichiers (chemin actuel ou d'origine, s'ils sont dans le tampon)."""
+    paths = {str(p) for p in paths}
+    return [i for i in load() if i["path"] in paths or i.get("origin") in paths]

@@ -208,7 +208,8 @@ class TouchWindow(QWidget):
                     break
                 m, why = ident.identify_or_set_aside(p, overwrite=len(paths) == 1, log=log)
                 if why:
-                    aside.append(p); log(f"⏸ mis de côté : {Path(p).name} — {why}")
+                    from .. import setaside
+                    aside.append(p); log(setaside.log_line(p, why))
                 elif m:
                     ok += 1; log("✓ " + m.label())
                     try:

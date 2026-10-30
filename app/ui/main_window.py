@@ -699,8 +699,13 @@ class MainWindow(QMainWindow):
 
     def _reload_paths(self, paths):
         for p in paths:
-            if os.path.exists(p):
-                self.lib.upsert(read_tags(p))
+            try:
+                if os.path.exists(p):
+                    self.lib.upsert(read_tags(p))
+                else:                      # placé dans le dossier tampon : retiré de la bibliothèque
+                    self.lib.remove(p)
+            except Exception:              # noqa: BLE001 - fichier abîmé : ne bloque pas les autres
+                pass
         self.refresh_tree(); self.refresh_tracks()
 
     # ------------------------------------------------------------------ outils
@@ -731,11 +736,12 @@ class MainWindow(QMainWindow):
 
     def _report_set_aside(self, paths):
         """En fin d'identification : signale les fichiers sautés (sans avoir interrompu les autres)."""
-        n = len(set(paths) & set(setaside.paths()))
+        n = len(setaside.matching(paths))
         if n and QMessageBox.question(
                 self, "Fichiers mis de côté",
-                f"{n} fichier(s) n'ont pas pu être modifiés (accès refusé ou fichier utilisé par un autre "
-                "programme) : ils ont été mis de côté et tous les autres ont été traités.\n\n"
+                f"{n} fichier(s) n'ont pas pu être complétés : accès refusé (laissés en place), ou informations "
+                f"endommagées (placés dans le dossier « {setaside.BUFFER_NAME} »). Tous les autres ont été "
+                "traités.\n\n"
                 "Afficher la liste ?") == QMessageBox.Yes:
             self.show_set_aside()
 

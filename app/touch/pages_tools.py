@@ -137,6 +137,8 @@ class ToolsPage(QWidget):
                + (f"• {nwav} WAV / OGG / WMA transformés en MP3\n" if nwav else "")
                + f"• {cnt.get('déjà rangé', 0)} déjà rangés\n"
                + (f"• {cnt.get('erreur', 0)} illisibles (accès refusé…) : laissés en place\n" if cnt.get("erreur") else "")
+               + (f"• {cnt.get('à vérifier', 0)} aux infos endommagées : placés dans « _Fichiers à vérifier »\n"
+                  if cnt.get("à vérifier") else "")
                + "\n"
                f"{'Copier' if copy else 'Déplacer'} {todo} fichiers vers « {dest} » ?")
         while True:

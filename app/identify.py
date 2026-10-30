@@ -189,22 +189,22 @@ def auto_identify(path: str, min_score=0.80, overwrite=False) -> Match | None:
     return m
 
 
-def identify_or_set_aside(path: str, min_score=0.80, overwrite=False, log=None):
-    """Comme auto_identify, mais ne lève jamais d'erreur : un fichier protégé (accès refusé, ouvert
-    dans un autre programme…) est mis de côté et l'appelant passe au suivant.
-    Renvoie (match ou None, raison si mis de côté sinon None)."""
+def identify_or_set_aside(path: str, min_score=0.80, overwrite=False, log=None, buffer_base=None):
+    """Comme auto_identify, mais ne lève jamais d'erreur, pour que les autres fichiers soient traités :
+    - lecture seule : retirée, puis le fichier est complété ;
+    - accès refusé impossible à lever : fichier mis de côté, laissé en place ;
+    - autre erreur (tags endommagés « not a Frame instance »…) : fichier placé dans le dossier tampon.
+    Renvoie (match ou None, texte pour le journal si le fichier a été écarté, sinon None)."""
     from . import setaside
-    from .organizer import friendly_error
     # vérifié d'abord (et lecture seule retirée) : inutile d'écouter un fichier qu'on ne pourra pas modifier
     why = setaside.check_access(path, on_unlock=(lambda p: log(f"🔓 lecture seule retirée : {Path(p).name}"))
                                 if log else None)
-    if why is None:
-        try:
-            m = auto_identify(path, min_score=min_score, overwrite=overwrite)
-        except Exception as e:                   # noqa: BLE001 - un fichier ne doit jamais arrêter les autres
-            why = friendly_error(e)
-        else:
-            setaside.remove([path])
-            return m, None
-    setaside.add(path, why, "identification")
-    return None, setaside.short_reason(why)
+    if why is not None:
+        setaside.add(path, why, "identification")
+        return None, setaside.short_reason(why)
+    try:
+        m = auto_identify(path, min_score=min_score, overwrite=overwrite)
+    except Exception as e:                       # noqa: BLE001 - un fichier ne doit jamais arrêter les autres
+        return None, setaside.handle_error(path, e, buffer_base)
+    setaside.remove([path])
+    return m, None

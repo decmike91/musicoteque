@@ -136,7 +136,7 @@ class OrganizeDialog(QDialog, LogMixin):
         self._busy(False)
         self.moves = moves
         colors = {"déplacer": "#2ea043", "déjà rangé": "#8b949e", "doublon": "#f85149", "incomplet": "#f0883e",
-                  "erreur": "#ff7b72",
+                  "erreur": "#ff7b72", "à vérifier": "#d29922",
                   "déjà présent": "#f85149", "remplace": "#58a6ff"}
         gone = "(non copié)" if self.rb_copy.isChecked() else "(supprimé → corbeille)"
         self.table.setRowCount(len(moves))
@@ -208,16 +208,16 @@ def task_plan(src, dest, pattern, ident, progress, log, cancel, dup_mode="delete
         for i, f in enumerate(todo):
             if cancel():
                 break
-            m, why = identify.identify_or_set_aside(f, log=log)
+            m, why = identify.identify_or_set_aside(f, log=log, buffer_base=dest or Path(src) / "Musique classée")
             if why:
                 aside.append(f)
-                log(f"⏸ mis de côté : {Path(f).name} — {why}")
+                log(setaside.log_line(f, why))
             else:
                 log(("✓ " + m.label()) if m else ("✗ non reconnu : " + Path(f).name))
             progress(i + 1, len(todo), f)
         if aside:
-            log(f"{len(aside)} fichier(s) mis de côté, les autres ont été traités. "
-                "Liste : menu Identifier ▸ Fichiers mis de côté.")
+            log(f"{len(aside)} fichier(s) écartés (dossier « {setaside.BUFFER_NAME} » ou mis de côté), "
+                "les autres ont été traités. Liste : menu Identifier ▸ Fichiers mis de côté.")
     log("Analyse des fichiers…")
     return organizer.plan(src, dest, pattern, progress=progress, cancel=cancel, dup_mode=dup_mode,
                           convert_wav=convert_wav, existing=existing)
@@ -284,14 +284,15 @@ class IdentifyDialog(QDialog):
                                                           + ". Essayez la recherche manuelle ou « Passer »."))
         self.w.start()
 
-    def set_aside(self, why):
-        """Fichier protégé : noté dans « Fichiers mis de côté », puis passage automatique au suivant."""
+    def set_aside(self, why, handled=False):
+        """Fichier écarté (mis de côté sur place, ou placé dans le dossier tampon), puis passage au suivant."""
         p = self.paths[self.i]
-        setaside.add(p, why, "identification")
-        why = setaside.short_reason(why)
+        if not handled:
+            setaside.add(p, why, "identification")
+            why = setaside.short_reason(why)
         self.skipped += 1
         self.list.clear()
-        self.list.addItem(f"⏸ {Path(p).name} est mis de côté : {why}.")
+        self.list.addItem(setaside.log_line(p, why))
         self.list.addItem("Passage au titre suivant…" if self.i + 1 < len(self.paths) else
                           "C'était le dernier titre. Liste : menu Identifier ▸ Fichiers mis de côté.")
         self.b_apply.setEnabled(True)
@@ -325,12 +326,12 @@ class IdentifyDialog(QDialog):
             try:
                 full = identify.complete(m, read_tags(p).album)
                 identify.apply_match(p, full, overwrite=self.cb_over.isChecked(), with_cover=self.cb_cover.isChecked())
-            except Exception as e:          # noqa: BLE001 - accès refusé… : mis de côté, on continue
-                return organizer.friendly_error(e)
+            except Exception as e:          # noqa: BLE001 - mis de côté ou dossier tampon, on continue
+                return setaside.handle_error(p, e)
             setaside.remove([p])
             return None
         self.w = Worker(job)
-        self.w.done.connect(lambda why: self.set_aside(why) if why else
+        self.w.done.connect(lambda why: self.set_aside(why, handled=True) if why else
                             (self.b_apply.setEnabled(True), self.changed.emit(), self.next()))
         self.w.failed.connect(lambda e: self.set_aside(organizer.friendly_error(Exception(e))))
         self.w.start()
@@ -371,7 +372,7 @@ class BatchIdentifyDialog(QDialog, LogMixin):
                 break
             m, why = identify.identify_or_set_aside(p, log=log)
             if why:
-                aside += 1; log(f"⏸ mis de côté : {Path(p).name} — {why}")
+                aside += 1; log(setaside.log_line(p, why))
             elif m:
                 ok += 1; log("✓ " + m.label())
             else:
@@ -388,13 +389,15 @@ class SetAsideDialog(QDialog):
         super().__init__(parent)
         self.setWindowTitle("Fichiers mis de côté"); fit_to_screen(self, 1050, 480)
         lay = QVBoxLayout(self)
-        intro = QLabel("Ces fichiers ont été sautés parce qu'ils n'ont pas pu être lus ou modifiés : fichier ouvert "
-                       "dans un autre programme, en lecture seule, dossier ou clé USB protégés… "
-                       "Fermez le programme concerné (lecteur, explorateur de fichiers, antivirus…) puis cliquez "
-                       "sur « Réessayer ».")
+        intro = QLabel("Ces fichiers ont été écartés sans arrêter le traitement des autres.<br>"
+                       "• <b>Accès refusé</b> (fichier ouvert dans un autre programme, clé USB protégée…) : laissés "
+                       "à leur place. Fermez le programme concerné, puis « Réessayer ».<br>"
+                       f"• <b>Informations endommagées</b> (« not a Frame instance »…) : placés dans le dossier "
+                       f"« {setaside.BUFFER_NAME} » (raisons dans _raisons.txt). Corrigez-les avec Ctrl+E, ou "
+                       "« Réessayer ».")
         intro.setWordWrap(True); lay.addWidget(intro)
-        self.table = QTableWidget(0, 4)
-        self.table.setHorizontalHeaderLabels(["Fichier", "Raison", "Date", "Dossier"])
+        self.table = QTableWidget(0, 5)
+        self.table.setHorizontalHeaderLabels(["Fichier", "Raison", "Date", "Dossier actuel", "Origine"])
         self.table.setSelectionBehavior(QTableWidget.SelectRows)
         self.table.setEditTriggers(QTableWidget.NoEditTriggers)
         self.table.horizontalHeader().setStretchLastSection(True)
@@ -414,7 +417,8 @@ class SetAsideDialog(QDialog):
         self.table.setRowCount(len(items))
         for r, it in enumerate(items):
             p = Path(it["path"])
-            for c, v in enumerate((p.name, it.get("reason", ""), it.get("date", ""), str(p.parent))):
+            for c, v in enumerate((p.name, it.get("reason", ""), it.get("date", ""), str(p.parent),
+                                   str(Path(it["origin"]).parent) if it.get("origin") else "(n'a pas bougé)")):
                 cell = QTableWidgetItem(v); cell.setData(Qt.UserRole, it["path"]); cell.setToolTip(it["path"])
                 self.table.setItem(r, c, cell)
         self.table.resizeColumnsToContents()

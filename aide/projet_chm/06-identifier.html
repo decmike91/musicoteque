@@ -15,6 +15,7 @@
 <li><strong>Fichier en lecture seule</strong> (fréquent après une copie depuis un CD) : la lecture seule est <strong>retirée automatiquement</strong>, le journal affiche «  lecture seule retirée », et le fichier est complété normalement.</li>
 <li><strong>Lecture seule impossible à retirer</strong> (fichier protégé par Windows, ouvert dans un autre programme, clé USB verrouillée) : le fichier est <strong>mis de côté</strong> («  mis de côté »), et le traitement <strong>continue avec les fichiers suivants</strong>.</li>
 </ul>
+<p><strong>Fichiers aux informations endommagées</strong> (message « not a Frame instance », tags illisibles…) : ils sont placés dans le dossier tampon <strong><code>_Fichiers à vérifier</code></strong>, à l'intérieur du dossier de destination (ou de la bibliothèque), et le traitement continue. Le fichier <code>_raisons.txt</code> de ce dossier indique pour chacun son emplacement d'origine et la raison. Ce dossier est ignoré par le rangement ; <em>Annuler le dernier rangement</em> remet ces fichiers à leur place.</p>
 <p>La liste se retrouve dans <strong>Identifier ▸ Fichiers mis de côté</strong> (sur le Pi : <em>Outils ▸ Compléter les infos manquantes</em>). Fermez le programme qui utilise le fichier ou déverrouillez la clé, puis <strong>Réessayer</strong>. Les fichiers réussis quittent la liste.</p>
 <h3>Modifier les informations à la main</h3>
 <p>Clic droit ▸ <em>Modifier les informations</em> (Ctrl+E).</p>

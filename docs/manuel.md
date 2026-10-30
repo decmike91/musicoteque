@@ -152,6 +152,8 @@ Pour compléter un titre, Musicothèque doit pouvoir modifier le fichier. Avant 
 - **Fichier en lecture seule** (fréquent après une copie depuis un CD) : la lecture seule est **retirée automatiquement**, le journal affiche « 🔓 lecture seule retirée », et le fichier est complété normalement.
 - **Lecture seule impossible à retirer** (fichier protégé par Windows, ouvert dans un autre programme, clé USB verrouillée) : le fichier est **mis de côté** (« ⏸ mis de côté »), et le traitement **continue avec les fichiers suivants**.
 
+**Fichiers aux informations endommagées** (message « not a Frame instance », tags illisibles…) : ils sont placés dans le dossier tampon **`_Fichiers à vérifier`**, à l'intérieur du dossier de destination (ou de la bibliothèque), et le traitement continue. Le fichier `_raisons.txt` de ce dossier indique pour chacun son emplacement d'origine et la raison. Ce dossier est ignoré par le rangement ; *Annuler le dernier rangement* remet ces fichiers à leur place.
+
 La liste se retrouve dans **Identifier ▸ Fichiers mis de côté** (sur le Pi : *Outils ▸ Compléter les infos manquantes*). Fermez le programme qui utilise le fichier ou déverrouillez la clé, puis **Réessayer**. Les fichiers réussis quittent la liste.
 
 ### Modifier les informations à la main
@@ -367,6 +369,7 @@ Sur le Pi, ouvrez **Outils ▸ 📱 Télécommande** et scannez le **QR code** a
 | L'installation reste bloquée sur ffmpeg | Attendez la fin du délai : l'installateur essaie un autre serveur, puis winget. Sinon, téléchargez ffmpeg (version « essentials ») et copiez `ffmpeg.exe` et `ffprobe.exe` dans le dossier `bin` de Musicothèque. |
 | Un titre n'est pas reconnu | Vérifiez la clé AcoustID dans les Paramètres. Les enregistrements rares ou très récents peuvent manquer : complétez à la main (Ctrl+E). |
 | « Accès refusé » pendant l'identification | La lecture seule est retirée automatiquement. Si c'est impossible, le fichier est mis de côté et les autres sont traités : voir **Identifier ▸ Fichiers mis de côté**, puis *Réessayer* après avoir fermé le programme qui l'utilise. |
+| Erreur « not a Frame instance » | Les informations (tags) du fichier sont endommagées. Le fichier est placé dans le dossier `_Fichiers à vérifier` et les autres sont traités. Corrigez-le avec *Modifier les informations* (Ctrl+E) ou un autre logiciel de tags, puis rangez ce dossier. |
 | « Accès refusé » pendant le rangement | Fermez le programme qui utilise le fichier, ou déverrouillez la clé USB, puis relancez le rangement. Les autres fichiers ont été traités normalement. |
 | Un WMA n'est pas converti | Il est protégé contre la copie (DRM). Il reste à sa place et se lit avec le Lecteur Windows Media. |
 | Pas de son sur une sortie | Utilisez le bouton 🔔 pour reconnaître la sortie, vérifiez qu'elle est *Active*, son volume et ses voies. Sur Raspberry Pi ou Banana Pi, ouvrez `alsamixer` et montez les réglages de sortie. |

@@ -21,7 +21,8 @@ COLS = ["path", "title", "artist", "album_artist", "album", "track", "disc", "ye
 
 def iter_audio_files(root: str | Path):
     for dirpath, dirnames, filenames in os.walk(root):
-        dirnames[:] = [d for d in dirnames if not d.startswith((".", "$")) and d != "System Volume Information"]
+        dirnames[:] = [d for d in dirnames if not d.startswith((".", "$"))
+                       and d not in ("System Volume Information", "_Fichiers à vérifier")]   # dossier tampon
         for n in filenames:
             if Path(n).suffix.lower() in AUDIO_EXTS:
                 yield str(Path(dirpath) / n)

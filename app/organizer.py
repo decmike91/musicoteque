@@ -36,6 +36,7 @@ class Move:
     convert: bool = False      # WAV -> MP3
     replaces: str = ""         # fichier de moins bonne qualité remplacé dans la destination
     reason: str = ""           # explication (doublon de…)
+    base: str = ""             # destination du rangement (son dossier tampon reçoit les fichiers en erreur)
 
 
 CONVERT_EXTS = {".wav", ".aif", ".aiff", ".ogg", ".oga", ".wma"}   # transformés en MP3 si l'option est cochée
@@ -125,8 +126,8 @@ def plan(source: str | Path, dest_root: str | Path | None = None,
                 t.artist = t.artist or g.get("artist", "")
                 t.track = t.track or g.get("track", 0)
             h = quick_hash(p)
-        except Exception as e:       # fichier illisible (accès refusé…) : signalé, puis on continue
-            unreadable.append(Move(p, "", "erreur", None, reason=friendly_error(e)))
+        except Exception as e:       # fichier illisible : signalé, puis on continue
+            unreadable.append(_error_move(p, None, e, dest_root))
             continue
         items.append({"path": p, "t": t, "hash": h, "key": song_key(t),
                       "q": quality(p, t.bitrate, t.has_cover, not t.is_incomplete)})
@@ -200,8 +201,21 @@ def plan(source: str | Path, dest_root: str | Path | None = None,
         try:
             _plan_item(it, moves, taken, replaced, dup_of, ex_index, dest_root, pattern, dup_mode, convert_wav)
         except Exception as e:
-            moves.append(Move(it["path"], "", "erreur", it["t"], reason=friendly_error(e)))
+            moves.append(_error_move(it["path"], it["t"], e, dest_root))
+    for m in moves:
+        m.base = str(dest_root)
     return moves
+
+
+BUFFER_STATUS = "à vérifier"
+
+
+def _error_move(p, t, e, dest_root):
+    """Accès refusé : laissé en place ; autre erreur (tags endommagés…) : ira dans le dossier tampon."""
+    from .setaside import is_access_error, buffer_dir
+    if is_access_error(e):
+        return Move(p, "", "erreur", t, reason=friendly_error(e))
+    return Move(p, str(buffer_dir(dest_root) / Path(p).name), BUFFER_STATUS, t, reason=friendly_error(e))
 
 
 def _plan_item(it, moves, taken, replaced, dup_of, ex_index, dest_root, pattern, dup_mode, convert_wav):
@@ -269,6 +283,9 @@ def friendly_error(e: BaseException, short=False) -> str:
         return "fichier introuvable (déplacé ou supprimé entre-temps)"
     if "No space" in txt or "[WinError 112]" in txt:
         return "disque plein"
+    if "not a Frame instance" in txt or "can't sync" in txt.lower() or type(e).__module__.startswith("mutagen") \
+            or "header not found" in txt.lower():
+        return f"informations du fichier (tags) endommagées ou format non reconnu : {txt[-120:]}"
     return txt[-200:] or type(e).__name__
 
 
@@ -381,9 +398,19 @@ def execute(moves: list[Move], copy=False, library=None, progress=None, cancel=l
         try:
             _execute_one(m, entry, copy, library, write_guessed, bitrate, say, stats)
         except Exception as e:
+            from .setaside import is_access_error, to_buffer, BUFFER_NAME
             entry["error"] = friendly_error(e)
-            errors.append((m.src, entry["error"]))
-            say(f"⚠ {Path(m.src).name} : {entry['error']}")
+            new = None
+            if not is_access_error(e) and m.status != "erreur" and os.path.exists(m.src):
+                new = to_buffer(m.src, entry["error"], m.base or None, copy=copy)
+            if new:
+                entry["buffer"] = new
+                stats["dossier tampon"] = stats.get("dossier tampon", 0) + 1
+                _lib(library, "remove", m.src)
+                say(f"📦 {Path(m.src).name} → « {BUFFER_NAME} » : {entry['error']}")
+            else:
+                errors.append((m.src, entry["error"]))
+                say(f"⚠ {Path(m.src).name} : {entry['error']}")
         log.append(entry)
         if progress:
             progress(i + 1, len(todo), m.dst or m.src)
@@ -418,10 +445,30 @@ def _lib(library, fn, *args):
         pass
 
 
+def _upsert(library, path):
+    """Ajout à la bibliothèque après rangement : un fichier aux infos abîmées ne doit rien interrompre."""
+    if library is None:
+        return
+    try:
+        library.upsert(read_tags(path))
+    except Exception:
+        pass
+
+
 def _execute_one(m: Move, entry, copy, library, write_guessed, bitrate, say, stats):
     from .tags import write_tags
     if m.status == "erreur":                      # déjà illisible à l'analyse
         raise OSError(m.reason)
+    if m.status == BUFFER_STATUS:                 # erreur à l'analyse (tags endommagés…) : dossier tampon
+        from .setaside import to_buffer, BUFFER_NAME
+        new = to_buffer(m.src, m.reason, m.base or None, copy=copy)
+        if not new:
+            raise OSError(f"impossible de le placer dans « {BUFFER_NAME} » ({m.reason})")
+        entry["buffer"] = new
+        _lib(library, "remove", m.src)
+        stats["dossier tampon"] = stats.get("dossier tampon", 0) + 1
+        say(f"📦 {Path(m.src).name} → « {BUFFER_NAME} » : {m.reason}")
+        return
     if m.status in ("doublon", "déjà présent") and not m.dst:
         # doublon à supprimer : jamais dans le support d'origine en mode copie
         if copy:
@@ -449,10 +496,10 @@ def _execute_one(m: Move, entry, copy, library, write_guessed, bitrate, say, sta
                 _lib(library, "remove", m.src)
             except Exception as e:
                 say(f"⚠ {Path(m.src).name} : converti, mais l'original n'a pas pu être retiré ({friendly_error(e, True)})")
-        _lib(library, "upsert", read_tags(m.dst))
+        _upsert(library, m.dst)
     elif copy:
         shutil.copy2(m.src, m.dst)
-        _lib(library, "upsert", read_tags(m.dst))
+        _upsert(library, m.dst)
     else:
         if move_file(m.src, m.dst):
             _lib(library, "rename_path", m.src, m.dst)   # garde écoutes et playlists
@@ -460,7 +507,7 @@ def _execute_one(m: Move, entry, copy, library, write_guessed, bitrate, say, sta
             entry["copied_only"] = True
             say(f"⚠ {Path(m.src).name} : copié dans la bibliothèque, mais l'original n'a pas pu être retiré "
                 "(accès refusé)")
-        _lib(library, "upsert", read_tags(m.dst))
+        _upsert(library, m.dst)
     if write_guessed and m.info and m.status not in ("doublon", "déjà présent"):
         try:
             cur = read_tags(m.dst)
@@ -469,7 +516,7 @@ def _execute_one(m: Move, entry, copy, library, write_guessed, bitrate, say, sta
                 write_tags(m.dst, title=None if cur.title else m.info.title,
                            artist=None if cur.artist else m.info.artist,
                            track=None if cur.track else (m.info.track or None))
-                _lib(library, "upsert", read_tags(m.dst))
+                _upsert(library, m.dst)
         except Exception as e:     # le fichier est rangé ; seules les infos n'ont pas pu être écrites
             say(f"ℹ {Path(m.dst).name} : rangé, mais infos non enregistrées ({friendly_error(e, True)})")
     stats["rangés"] += 1
@@ -478,6 +525,9 @@ def _execute_one(m: Move, entry, copy, library, write_guessed, bitrate, say, sta
 def undo(log_path, library=None) -> int:
     n = 0
     for e in reversed(json.loads(Path(log_path).read_text(encoding="utf-8"))):
+        if e.get("buffer"):                       # placé dans le dossier tampon : on le remet
+            e = dict(e, dst=e["buffer"])
+            e.pop("error", None); e.pop("convert", None)
         if "error" in e or e.get("skipped") or not e.get("dst") or not os.path.exists(e["dst"]):
             continue      # (les fichiers supprimés se récupèrent dans la corbeille)
         try:
